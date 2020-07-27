@@ -1,0 +1,64 @@
+<html>
+<head>
+    <title></title>
+</head>
+<body>
+<h1>This is video participant app</h1>
+
+
+
+<script src="https://media.twiliocdn.com/sdk/js/video/releases/2.4.0/twilio-video.min.js"></script>
+
+    <script>
+
+
+const Video = Twilio.Video;
+let tkn = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImN0eSI6InR3aWxpby1mcGE7dj0xIn0.eyJqdGkiOiJTSzBlNmVlYmZhZTk0NTY0N2Q3MzA3YmQ1MjIwMjhiMTg2LTE1ODkwMjc3NTAiLCJpc3MiOiJTSzBlNmVlYmZhZTk0NTY0N2Q3MzA3YmQ1MjIwMjhiMTg2Iiwic3ViIjoiQUNlNzMxNWE4MDBkMzAxODFiMmQ2MGUxYTEzNzc3MmJlZCIsImV4cCI6MTU4OTAzMTM1MCwiZ3JhbnRzIjp7ImlkZW50aXR5IjoiVTIiLCJ2aWRlbyI6e319fQ.ifX28OIS1nepDIgqRF3EZPfACgJ9Kc2MSoThd4EqgNs';
+Video.connect(tkn, { name: 'rmname' }).then(room => {
+  console.log('Connected to Room "%s"', room.name);
+
+  room.participants.forEach(participantConnected);
+  room.on('participantConnected', participantConnected);
+
+  room.on('participantDisconnected', participantDisconnected);
+  room.once('disconnected', error => room.participants.forEach(participantDisconnected));
+});
+
+
+function participantConnected(participant) {
+  console.log('Participant "%s" connected', participant.identity);
+
+  const div = document.createElement('div');
+  div.id = participant.sid;
+  div.innerText = participant.identity;
+
+  participant.on('trackSubscribed', track => trackSubscribed(div, track));
+  participant.on('trackUnsubscribed', trackUnsubscribed);
+
+  participant.tracks.forEach(publication => {
+    if (publication.isSubscribed) {
+      trackSubscribed(div, publication.track);
+    }
+  });
+
+  console.log("child: "+ div);
+  document.body.appendChild(div);
+}
+
+function participantDisconnected(participant) {
+  console.log('Participant "%s" disconnected', participant.identity);
+  document.getElementById(participant.sid).remove();
+}
+
+function trackSubscribed(div, track) {
+  div.appendChild(track.attach());
+}
+
+function trackUnsubscribed(track) {
+  track.detach().forEach(element => element.remove());
+}
+
+
+    </script>
+</body>
+</html>
